@@ -26,7 +26,7 @@ cd ansible
 ./bin/install-ansible-roles
 
 ./bin/ansible-playbook docker.yml
-./bin/ansible-playbook kubereqs.yml
-./bin/ansible-playbook create-cluster.yml
+./bin/ansible-playbook kube-reqs.yml
+./bin/ansible-playbook kube-cluster.yml
 ```
 
