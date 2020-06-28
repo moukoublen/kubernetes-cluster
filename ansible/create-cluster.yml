@@ -1,9 +1,13 @@
 ---
-- hosts: node-0
+- hosts: manager
   become: true
   tasks:
   - name: Initialize the Kubernetes cluster using kubeadm
-    command: kubeadm init --apiserver-advertise-address="{{ hostvars[inventory_hostname]['ansible_ssh_host'] }}" --apiserver-cert-extra-sans="{{ hostvars[inventory_hostname]['ansible_ssh_host'] }}"  --node-name node-0 --pod-network-cidr=192.168.40.0/24
+    command: |
+      kubeadm init --apiserver-advertise-address="{{ hostvars[inventory_hostname]['ansible_ssh_host'] }}" \
+                   --apiserver-cert-extra-sans="{{ hostvars[inventory_hostname]['ansible_ssh_host'] }}"   \
+                   --node-name manager \
+                   --pod-network-cidr=192.168.40.0/24
   - name: Setup kubeconfig for vagrant user
     command: "{{ item }}"
     with_items:
@@ -24,7 +28,7 @@
   become: true
   tasks:
   - name: Run a command to join cluster
-    shell: "{{ hostvars['node-0']['join_command'].stdout_lines | first }}"
+    shell: "{{ hostvars['manager']['join_command'].stdout_lines | first }}"
   handlers:
     - name: docker status
       service: name=docker state=started

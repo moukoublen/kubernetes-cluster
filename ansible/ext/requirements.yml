@@ -1,9 +1,7 @@
 ---
 roles:
   - src: geerlingguy.docker
-    version: 2.7.0
-  - src: atosatto.docker-swarm
-    version: v2.1.1
+    version: 2.8.1
 
 collections:
   - name: community.general
