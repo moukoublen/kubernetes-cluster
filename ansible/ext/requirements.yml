@@ -1,0 +1,11 @@
+---
+roles:
+  - src: geerlingguy.docker
+    version: 2.7.0
+  - src: atosatto.docker-swarm
+    version: v2.1.1
+
+collections:
+  - name: community.general
+    version: 0.2.0
+    source: https://galaxy.ansible.com
