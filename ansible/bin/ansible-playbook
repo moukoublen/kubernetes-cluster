@@ -1,3 +1,4 @@
+chmod 0600 ../vagrant/ssh_keys/key
 ANSIBLE_HOST_KEY_CHECKING=False ANSIBLE_COLLECTIONS_PATHS=./ansible_colections ANSIBLE_ROLES_PATH=./ansible_roles ansible-playbook \
   -u vagrant \
   -i inventory \
