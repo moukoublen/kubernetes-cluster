@@ -47,3 +47,8 @@ You can access directly with `kubectl` the cluster from host machine by getting 
 scp -i ./vagrant/ssh_keys/key vagrant@192.168.100.10:/home/vagrant/.kube/config ~/.kube/config
 kubectl get nodes
 ```
+
+### C) From another machine that is in tha same network with host
+Add tp `/etc/host` this line `<host ip> kube.cluster.local`.
+
+Copy `~/.kube/config` from manager and replace the `server` field (in clusters array) with this `server: https://kube.cluster.local:6443`
