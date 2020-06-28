@@ -5,7 +5,7 @@
   - name: Initialize the Kubernetes cluster using kubeadm
     command: |
       kubeadm init --apiserver-advertise-address="{{ hostvars[inventory_hostname]['ansible_ssh_host'] }}" \
-                   --apiserver-cert-extra-sans="{{ hostvars[inventory_hostname]['ansible_ssh_host'] }}"   \
+                   --apiserver-cert-extra-sans="kube.cluster.local,{{ hostvars[inventory_hostname]['ansible_ssh_host'] }}"   \
                    --node-name manager \
                    --pod-network-cidr=192.168.40.0/24
   - name: Setup kubeconfig for vagrant user
