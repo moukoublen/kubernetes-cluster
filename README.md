@@ -9,9 +9,9 @@ To create the vms
 
 ```bash
 cd vagrant
-vagrant up --provider=virtualbox
+vagrant up
 # or
-vagrant up --provider=libvirt
+vagrant up--provider=virtualbox
 
 # To destroy
 vagrant destroy --force
