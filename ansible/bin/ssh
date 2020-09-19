@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+__inv_search() {
+  cat inventory  | awk -F '[ =]' "{ if (\$1 == \"$1\") print \$3}"
+}
+
+N_IP=$(__inv_search $1)
+
+if [[ -z $N_IP ]]; then
+  echo "no ip for node $1 found"
+  exit 1
+fi
+
+
+echo $N_IP
+
+ssh -i ../vagrant/ssh_keys/key vagrant@$N_IP
+
+
+unset N_IP
+unset -f __inv_search

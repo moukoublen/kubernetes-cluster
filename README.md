@@ -30,8 +30,9 @@ cd ansible
 ./bin/ansible-playbook kube-cluster.yml
 ```
 
-## Access cluster
+_______________________
 
+## Access cluster
 
 ### A) From manager (vagrant ssh)
 You can access kubernetes cluster by ssh to manager and use `kubectl`:
