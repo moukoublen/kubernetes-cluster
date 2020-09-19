@@ -24,6 +24,7 @@ vagrant destroy --force
 cd ansible
 
 ./bin/install-ansible-roles
+./bin/install-ansible-collections
 
 ./bin/ansible-playbook docker.yml
 ./bin/ansible-playbook kube-reqs.yml
