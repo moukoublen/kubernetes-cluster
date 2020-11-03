@@ -1,4 +1,4 @@
-IMAGE_NAME = "generic/ubuntu2004"
+IMAGE_NAME = "ubuntu/focal64"
 ssh_pub_key = File.readlines("ssh_keys/key.pub").first.strip
 
 Vagrant.configure("2") do |config|

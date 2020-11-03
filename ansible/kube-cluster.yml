@@ -7,7 +7,7 @@
       kubeadm init --apiserver-advertise-address="{{ hostvars[inventory_hostname]['ansible_ssh_host'] }}" \
                    --apiserver-cert-extra-sans="kube.cluster.local,{{ hostvars[inventory_hostname]['ansible_ssh_host'] }}"   \
                    --node-name manager \
-                   --pod-network-cidr=192.168.40.0/24
+                   --pod-network-cidr=10.88.0.0/16
 
   - name: Setup kubeconfig for vagrant user
     command: "{{ item }}"
@@ -19,7 +19,7 @@
   #https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/#pod-network
   - name: Install calico pod network
     become: false
-    command: kubectl create -f https://docs.projectcalico.org/manifests/calico.yaml
+    command: kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
 
   - name: Generate join command
     command: kubeadm token create --print-join-command

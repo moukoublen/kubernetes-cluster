@@ -11,13 +11,13 @@
       mode: 0775
   - name: Download istio
     unarchive:
-      src: https://github.com/istio/istio/releases/download/1.7.2/istio-1.7.2-linux-amd64.tar.gz
+      src: https://github.com/istio/istio/releases/download/1.7.4/istio-1.7.4-linux-amd64.tar.gz
       dest: /opt/istio
       mode: 0775
       remote_src: yes
   - name: Create a symbolic link of istioctl
     file:
-      src: /opt/istio/istio-1.7.2/bin/istioctl
+      src: /opt/istio/istio-1.7.4/bin/istioctl
       dest: /usr/local/bin/istioctl
       owner: root
       group: root
