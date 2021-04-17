@@ -1,3 +1,4 @@
+# a little bit ugly but...
 systemctl stop systemd-resolved.service
 systemctl disable systemd-resolved.service
 sed -i.bak -e "s/^nameserver.*$//g" /etc/resolv.conf

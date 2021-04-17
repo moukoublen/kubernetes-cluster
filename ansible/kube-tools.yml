@@ -1,0 +1,33 @@
+---
+- hosts: all
+  become: true
+  become_user: root
+  tasks:
+  - name: Ensure requirements are installed
+    apt:
+      name: "{{ packages }}"
+      state: present
+      update_cache: yes
+    vars:
+      packages: [ "apt-transport-https", "ca-certificates", "curl" ]
+
+  - name: "Add kubernetes repo key"
+    ansible.builtin.apt_key:
+      url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+      state: present
+  - name: "Add kubernetes repo"
+    ansible.builtin.apt_repository:
+      repo: "deb https://apt.kubernetes.io/ kubernetes-xenial main"
+      state: present
+      update_cache: true
+      filename: kubernetes.list
+  - name: Install Kubernetes binaries
+    apt:
+      name: "{{ packages }}"
+      state: present
+      update_cache: yes
+    vars:
+      packages:
+        - kubelet=1.21.0-00
+        - kubeadm=1.21.0-00
+        - kubectl=1.21.0-00

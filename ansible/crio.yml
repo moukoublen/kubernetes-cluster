@@ -1,0 +1,45 @@
+---
+- hosts: all
+  become: true
+  become_user: root
+  vars:
+    crio_kubernetes_version: "1.21"
+    crio_os: "xUbuntu_20.04"
+  tasks:
+  - name: "Add cri-o stable repo key"
+    ansible.builtin.apt_key:
+      url: "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/{{ crio_os }}/Release.key"
+      state: present
+  - name: "Add cri-o stable repo"
+    ansible.builtin.apt_repository:
+      repo: "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/{{ crio_os }}/ /"
+      state: present
+      update_cache: true
+      filename: devel:kubic:libcontainers:stable.list
+
+  - name: "Add cri-o repo key"
+    ansible.builtin.apt_key:
+      url: "https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:{{ crio_kubernetes_version }}/{{ crio_os }}/Release.key"
+      state: present
+  - name: "Add cri-o repo"
+    ansible.builtin.apt_repository:
+      repo: "deb http://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/{{ crio_kubernetes_version }}/{{ crio_os }}/ /"
+      state: present
+      update_cache: true
+      filename: "devel:kubic:libcontainers:stable:cri-o:{{ crio_kubernetes_version }}.list"
+
+  - name: Install cri-o packages
+    apt:
+      name: "{{ packages }}"
+      state: present
+      update_cache: yes
+    vars:
+      packages:
+        - cri-o
+        - cri-o-runc
+
+  - name: Stop service ufw
+    ansible.builtin.systemd:
+      name: crio
+      state: started
+      enabled: yes

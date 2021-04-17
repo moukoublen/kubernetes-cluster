@@ -3,9 +3,7 @@ ssh_pub_key = File.readlines("ssh_keys/key.pub").first.strip
 
 Vagrant.configure("2") do |config|
     config.vm.provision "shell", inline: "echo #{ssh_pub_key} >> /home/vagrant/.ssh/authorized_keys", privileged: false
-    config.vm.provision "shell", path: "provision/no-ipv6.sh", privileged: true
     config.vm.provision "shell", path: "provision/dns.sh", privileged: true
-    config.vm.provision "shell", path: "provision/packages.sh", privileged: true
     config.vm.provision "shell", path: "provision/append-bashrc.sh", privileged: false
 
     config.vm.provider "virtualbox" do |v|

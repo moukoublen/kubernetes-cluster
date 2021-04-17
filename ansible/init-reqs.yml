@@ -1,0 +1,125 @@
+---
+- hosts: all
+  become: true
+  become_user: root
+  tasks:
+  - name: "Build hosts file"
+    lineinfile: dest=/etc/hosts regexp='.*{{ item }}$' line="{{ hostvars[item].ansible_ssh_host }} {{item}}" state=present
+    with_items: "{{ groups['all'] }}"
+
+  - name: Enable ip_forward
+    ansible.posix.sysctl:
+      name: net.ipv4.ip_forward
+      value: '1'
+      state: present
+      sysctl_file: /etc/sysctl.d/extras.conf
+      sysctl_set: yes
+      reload: yes
+  - name: Disable IPv6 all
+    ansible.posix.sysctl:
+      name: net.ipv6.conf.all.disable_ipv6
+      value: '1'
+      state: present
+      sysctl_file: /etc/sysctl.d/extras.conf
+      sysctl_set: yes
+      reload: yes
+  - name: Disable IPv6 default
+    ansible.posix.sysctl:
+      name: net.ipv6.conf.default.disable_ipv6
+      value: '1'
+      state: present
+      sysctl_file: /etc/sysctl.d/extras.conf
+      sysctl_set: yes
+      reload: yes
+  - name: Disable IPv6 lo
+    ansible.posix.sysctl:
+      name: net.ipv6.conf.lo.disable_ipv6
+      value: '1'
+      state: present
+      sysctl_file: /etc/sysctl.d/extras.conf
+      sysctl_set: yes
+      reload: yes
+  - name: Disable IPv6 enp0s3
+    ansible.posix.sysctl:
+      name: net.ipv6.conf.enp0s3.disable_ipv6
+      value: '1'
+      state: present
+      sysctl_file: /etc/sysctl.d/extras.conf
+      sysctl_set: yes
+      reload: yes
+  - name: Disable IPv6 enp0s8
+    ansible.posix.sysctl:
+      name: net.ipv6.conf.enp0s8.disable_ipv6
+      value: '1'
+      state: present
+      sysctl_file: /etc/sysctl.d/extras.conf
+      sysctl_set: yes
+      reload: yes
+
+  - name: Stop service ufw
+    ansible.builtin.systemd:
+      name: ufw.service
+      state: stopped
+      enabled: no
+
+  - name: Remove swapfile from /etc/fstab
+    mount:
+      name: "{{ item }}"
+      fstype: swap
+      state: absent
+    with_items:
+      - swap
+      - none
+  - name: Disable swap
+    command: swapoff -a
+    when: ansible_swaptotal_mb > 0
+  - name: Set vm.swappiness to zero
+    ansible.posix.sysctl:
+      name: vm.swappiness
+      value: '0'
+      state: present
+      sysctl_file: /etc/sysctl.d/extras.conf
+      sysctl_set: yes
+      reload: yes
+
+  - name: Install tools
+    apt:
+      name: "{{ packages }}"
+      state: present
+      update_cache: yes
+    vars:
+      packages: [ "htop", "jq", "git", "iproute" ]
+
+
+# Letting iptables see bridged traffic https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/#letting-iptables-see-bridged-traffic
+  - name: Module br_netfilter
+    ansible.builtin.copy:
+      dest: "/etc/modules-load.d/k8s.conf"
+      content: |
+        br_netfilter
+    register: module_result
+  - name: Reboot
+    ansible.builtin.reboot:
+      msg: "Reboot initiated"
+      connect_timeout: 5
+      reboot_timeout: 600
+      pre_reboot_delay: 0
+      post_reboot_delay: 30
+      test_command: uptime
+    when: module_result.changed
+  - name: Ensure net.bridge.bridge-nf-call-ip6tables is set to 1
+    ansible.posix.sysctl:
+      name: net.bridge.bridge-nf-call-ip6tables
+      value: '1'
+      state: present
+      sysctl_file: /etc/sysctl.d/k8s.conf
+      sysctl_set: yes
+      reload: yes
+  - name: Ensure net.bridge.bridge-nf-call-iptables is set to 1
+    ansible.posix.sysctl:
+      name: net.bridge.bridge-nf-call-iptables
+      value: '1'
+      state: present
+      sysctl_file: /etc/sysctl.d/k8s.conf
+      sysctl_set: yes
+      reload: yes
