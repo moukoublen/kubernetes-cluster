@@ -4,7 +4,7 @@
   become_user: root
   tasks:
   - name: Ensure requirements are installed
-    apt:
+    ansible.builtin.apt:
       name: "{{ packages }}"
       state: present
       update_cache: yes
@@ -22,7 +22,7 @@
       update_cache: true
       filename: kubernetes.list
   - name: Install Kubernetes binaries
-    apt:
+    ansible.builtin.apt:
       name: "{{ packages }}"
       state: present
       update_cache: yes
@@ -31,3 +31,18 @@
         - kubelet=1.21.0-00
         - kubeadm=1.21.0-00
         - kubectl=1.21.0-00
+    register: apt_install_result
+  - name: Configure node ip
+    ansible.builtin.lineinfile:
+      state: present
+      create: true
+      path: /etc/default/kubelet
+      line: KUBELET_EXTRA_ARGS=--node-ip={{ hostvars[inventory_hostname]['ansible_ssh_host'] }}
+    register: kubelet_file_result
+  - name: Restart kubelet
+    ansible.builtin.systemd:
+      name: kubelet
+      state: restarted
+      enabled: yes
+      daemon_reload: yes
+    when: apt_install_result.changed or kubelet_file_result.changed

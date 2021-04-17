@@ -88,7 +88,7 @@
       state: present
       update_cache: yes
     vars:
-      packages: [ "htop", "jq", "git", "iproute" ]
+      packages: [ "htop", "jq", "git" ]
 
 
 # Letting iptables see bridged traffic https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/#letting-iptables-see-bridged-traffic
