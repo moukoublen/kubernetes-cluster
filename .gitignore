@@ -1,3 +1,2 @@
 .vagrant/
-ansible_collections/
-ansible_roles/
+ansible_lib/

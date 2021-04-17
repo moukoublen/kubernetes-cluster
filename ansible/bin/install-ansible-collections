@@ -1,1 +1,2 @@
-ansible-galaxy collection install -r ext/requirements.yml -p ./
+ANSIBLE_COLLECTIONS_PATHS=./ansible_lib  \
+ansible-galaxy collection install --requirements-file ext/collections.yml

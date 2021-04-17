@@ -1,1 +1,2 @@
-ansible-galaxy install -r ext/requirements.yml  -p ./ansible_roles
+ANSIBLE_ROLES_PATH=./ansible_lib/roles \
+ansible-galaxy role install --role-file ext/roles.yml
