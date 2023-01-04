@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+multipass stop --verbose kube-node-0
+multipass stop --verbose kube-node-1
+multipass stop --verbose kube-node-2
+
+multipass delete kube-node-0
+multipass delete kube-node-1
+multipass delete kube-node-2
+
+multipass purge --verbose

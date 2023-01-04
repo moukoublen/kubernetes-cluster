@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+
+vm-up() {
+  local name="${1}"
+  if multipass info "${name}" &> /dev/null; then
+    echo "${name} exists"
+  else
+    multipass launch --name "${name}" --mem 8g --cpus 2 --disk 20G 22.04
+  fi
+}
+
+get-ip() {
+  local name="${1}"
+  multipass info "${name}" | grep "^IPv4:" | sed "s/IPv4:[ ]*//"
+}
+
+apend-key-to-authorized-keys() {
+  local node="${1}"
+  cat ./keys/key.pub | multipass transfer - "${node}":/tmp/key.pub
+  multipass exec "${node}" -- bash -c 'LINE=$(cat /tmp/key.pub); DST=/home/ubuntu/.ssh/authorized_keys; grep -qF -- "${LINE}" "${DST}" || echo "${LINE}" >> "${DST}"'
+}
+
+# Create the nodes
+vm-up "kube-node-0"
+vm-up "kube-node-1"
+vm-up "kube-node-2"
+
+# Add ssh key to authorized_keys
+apend-key-to-authorized-keys "kube-node-0"
+apend-key-to-authorized-keys "kube-node-1"
+apend-key-to-authorized-keys "kube-node-2"
+
+# Create ansible inventory
+echo "
+kube-node-0 ansible_ssh_host=$(get-ip "kube-node-0")
+kube-node-1 ansible_ssh_host=$(get-ip "kube-node-1")
+kube-node-2 ansible_ssh_host=$(get-ip "kube-node-2")
+
+[nodes]
+kube-node-1
+kube-node-2
+" > ./ansible/inventory

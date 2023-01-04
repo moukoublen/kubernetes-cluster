@@ -1,0 +1,44 @@
+---
+- hosts: all
+  become: true
+  vars:
+    kubernetes_version: "1.26.0-00"
+  tasks:
+
+  - name: Add kubernetes apt key.
+    ansible.builtin.get_url:
+      url: "https://packages.cloud.google.com/apt/doc/apt-key.gpg"
+      dest: /etc/apt/keyrings/kubernetes-archive-keyring.gpg
+      mode: '0644'
+      force: true
+
+  - name: Adding apt repository for Kubernetes
+    ansible.builtin.apt_repository:
+      repo: "deb [signed-by=/etc/apt/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main"
+      state: present
+      filename: kubernetes.list
+
+  - name: Install Kubernetes binaries
+    ansible.builtin.apt:
+      name: "{{ packages }}"
+      state: present
+      update_cache: yes
+    vars:
+      packages:
+        - kubelet={{kubernetes_version}}
+        - kubeadm={{kubernetes_version}}
+        - kubectl={{kubernetes_version}}
+
+  - name: Configure node ip
+    ansible.builtin.lineinfile:
+      state: present
+      create: true
+      path: /etc/default/kubelet
+      line: KUBELET_EXTRA_ARGS=--node-ip={{ hostvars[inventory_hostname]['ansible_ssh_host'] }}
+
+  # - name: Restart kubelet
+  #   ansible.builtin.systemd:
+  #     name: kubelet
+  #     daemon_reload: yes
+  #     state: restarted
+  #     enabled: yes

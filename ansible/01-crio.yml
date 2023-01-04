@@ -1,0 +1,94 @@
+---
+- hosts: all
+  become: true
+  vars:
+    crio_version: "1.26"
+    crio_os: "xUbuntu_22.04"
+  tasks:
+    - name: Ensure required dependencies are installed
+      ansible.builtin.apt:
+        name:
+          - gnupg
+          - libseccomp2
+        state: present
+        update_cache: true
+
+    - name: Ensure directory /usr/share/keyrings exists
+      ansible.builtin.file:
+        path: /usr/share/keyrings
+        state: directory
+        mode: '0755'
+
+    - name: Add crio libcontainers repo key
+      ansible.builtin.shell:
+        cmd: "curl --location --fail --show-error --silent https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/{{crio_os}}/Release.key | gpg --dearmor -o /usr/share/keyrings/libcontainers-archive-keyring.gpg"
+        executable: /usr/bin/bash
+        creates: /usr/share/keyrings/libcontainers-archive-keyring.gpg
+
+    - name: Add crio libcontainers repo
+      ansible.builtin.copy:
+        dest: "/etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list"
+        content: |
+          deb [signed-by=/usr/share/keyrings/libcontainers-archive-keyring.gpg] https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/{{crio_os}}/ /
+
+    - name: Add crio libcontainers-crio repo key
+      ansible.builtin.shell:
+        cmd: "curl --location --fail --show-error --silent https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/{{crio_version}}/{{crio_os}}/Release.key | gpg --dearmor -o /usr/share/keyrings/libcontainers-crio-archive-keyring.gpg"
+        executable: /usr/bin/bash
+        creates: /usr/share/keyrings/libcontainers-crio-archive-keyring.gpg
+
+    - name: Add crio libcontainers-crio repo
+      ansible.builtin.copy:
+        dest: "/etc/apt/sources.list.d/devel:kubic:libcontainers:stable:cri-o:{{crio_version}}.list"
+        content: |
+          deb [signed-by=/usr/share/keyrings/libcontainers-crio-archive-keyring.gpg] https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/{{crio_version}}/{{crio_os}}/ /
+
+    # # If you'd like to use the distribution's runc, you'll have to add the file:
+    # - name: Add crio configuration for runc
+    #   ansible.builtin.copy:
+    #     dest: /etc/crio/crio.conf.d/runc.toml
+    #     content: |
+    #       [crio.runtime.runtimes.runc]
+    #       runtime_path = ""
+    #       runtime_type = "oci"
+    #       runtime_root = "/run/runc"
+
+    - name: Ensure crio packages are installed
+      ansible.builtin.apt:
+        name:
+          - cri-o
+          - cri-o-runc
+        state: latest
+        update_cache: true
+
+    # # CRI-O uses the systemd cgroup driver per default, which is likely to work fine for you.
+    # # To switch to the cgroupfs cgroup driver, either edit /etc/crio/crio.conf or place a drop-in configuration
+    # # in /etc/crio/crio.conf.d/02-cgroup-manager.conf, for example:
+    # - name: Switch to the cgroupfs cgroup driver
+    #   ansible.builtin.copy:
+    #     dest: /etc/crio/crio.conf.d/02-cgroup-driver.conf
+    #     content: |
+    #       [crio.runtime]
+    #       conmon_cgroup = "pod"
+    #       cgroup_manager = "cgroupfs"
+    - name: Set cgroup driver
+      ansible.builtin.copy:
+        dest: /etc/crio/crio.conf.d/02-cgroup-driver.conf
+        content: |
+          [crio.runtime]
+          cgroup_manager = "systemd"
+
+    # # https://kubernetes.io/docs/setup/production-environment/container-runtimes/#override-pause-image-cri-o
+    - name: Overriding the sandbox (pause) image
+      ansible.builtin.copy:
+        dest: /etc/crio/crio.conf.d/03-override-pause-image.conf
+        content: |
+          [crio.image]
+          pause_image="registry.k8s.io/pause:3.6"
+
+    - name: Reload crio service
+      ansible.builtin.systemd:
+        name: crio.service
+        state: restarted
+        enabled: yes
+        daemon_reload: yes

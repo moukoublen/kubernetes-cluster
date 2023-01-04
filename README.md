@@ -1,56 +1,43 @@
 # Kubernetes Cluster
-Create a kubernetes cluster with ansible (and vagrant for vms).
-Based on [this](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/) and [this](https://kubernetes.io/blog/2019/03/15/kubernetes-setup-using-ansible-and-vagrant/)
+Create a kubernetes cluster from scratch with [multipass](https://multipass.run/install) vms and [ansible](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html).
 
 
-## Vagrant
+## A) Create the ubuntu vms with multipass
 
-To create the vms
+To create the vms run the `up` script (`./up`)
 
-```bash
-cd vagrant
-vagrant up
-# or
-vagrant up--provider=virtualbox
-
-# To destroy
-vagrant destroy --force
-```
+This script will:
+* Create and start 3 vms (with names `kube-node-0`, `kube-node-1`, `kube-node-2`)
+* Add the public key `./keys/key.pub` in each vm's `authorized_keys`
+* Create the ansible `inventory` file by getting each vm's ip.
 
 
-## Ansible
+## B) Create kubernetes cluster with ansible
 
-```bash
-cd ansible
+Every ansible playbook must be run from `./ansible` directory (`cd ansible`).
 
-./bin/install-ansible-roles
-./bin/install-ansible-collections
+* `./bin/install-ansible-collections-and-roles` Installs ansible collections and roles.
+* `./bin/ansible-playbook 00-prequirements.yml` Installs basic configuration requirements for each node.
+* `./bin/ansible-playbook 01-crio.yml` Installs [cri-o](https://cri-o.io/) as [container runtime](https://kubernetes.io/docs/setup/production-environment/container-runtimes/)
+* `./bin/ansible-playbook 02-kube-install.yml` Installs kubernetes deployment tools ([kubeadm, kubelet, kubectl](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/#installing-kubeadm-kubelet-and-kubectl)).
+* `./bin/ansible-playbook 03-kube-cluster.yml` Setups the kubernetes cluster and installs [Calico](https://projectcalico.docs.tigera.io/about/about-calico) networking.
 
-./bin/ansible-playbook docker.yml
-./bin/ansible-playbook kube-reqs.yml
-./bin/ansible-playbook kube-cluster.yml
-```
 
 _______________________
 
 ## Access cluster
 
-### A) From manager (vagrant ssh)
-You can access kubernetes cluster by ssh to manager and use `kubectl`:
+### A) From kube-node-0 (`multipass shell kube-node-0`)
+You can access kubernetes cluster through `kube-node-0` by opening a shell to it with `multipass shell kube-node-0`.
 ```bash
-cd vagrant
-vagrant ssh manager
+multipass shell kube-node-0
 kubectl get nodes
 ```
 
-### B) From host (get .kube/config from manager)
-You can access directly with `kubectl` the cluster from host machine by getting the `~/.kube/config` from manager
+### B) From host (get .kube/config from `kube-node-0`)
+You can access the cluster directly with `kubectl` from the host machine by getting the `~/.kube/config` from `kube-node-0`
 ```bash
-scp -i ./vagrant/ssh_keys/key vagrant@192.168.100.10:/home/vagrant/.kube/config ~/.kube/config
+mkdir -p ~/.kube/
+multipass transfer kube-node-0:/home/ubuntu/.kube/config - > ~/.kube/config
 kubectl get nodes
 ```
-
-### C) From another machine that is in tha same network with host
-Add tp `/etc/host` this line `<host ip> kube.cluster.local`.
-
-Copy `~/.kube/config` from manager and replace the `server` field (in clusters array) with this `server: https://kube.cluster.local:6443`

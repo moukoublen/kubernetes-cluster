@@ -14,7 +14,7 @@ fi
 
 echo $N_IP
 
-ssh -i ../vagrant/ssh_keys/key vagrant@$N_IP
+ssh -i ../keys/key ubuntu@$N_IP
 
 
 unset N_IP
