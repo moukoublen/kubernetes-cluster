@@ -1,44 +1,59 @@
 ---
-- hosts: all
+- name: Install kubernetes binaries
+  hosts: all
   become: true
+  become_user: root
   vars:
-    kubernetes_version: "1.26.0-00"
+    kubernetes_major_version: "1.28"
   tasks:
 
-  - name: Add kubernetes apt key.
-    ansible.builtin.get_url:
-      url: "https://packages.cloud.google.com/apt/doc/apt-key.gpg"
-      dest: /etc/apt/keyrings/kubernetes-archive-keyring.gpg
-      mode: '0644'
-      force: true
+    - name: Ensure directory /usr/share/keyrings exists
+      ansible.builtin.file:
+        path: /usr/share/keyrings
+        state: directory
+        mode: '0755'
 
-  - name: Adding apt repository for Kubernetes
-    ansible.builtin.apt_repository:
-      repo: "deb [signed-by=/etc/apt/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main"
-      state: present
-      filename: kubernetes.list
+    - name: Kubernetes keyring and repo
+      block:
+        # curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.28/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+        - name: Keyring
+          ansible.builtin.apt_key:
+            url: https://pkgs.k8s.io/core:/stable:/v{{ kubernetes_major_version }}/deb/Release.key
+            keyring: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+        # echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.28/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list
+        - name: Repo
+          ansible.builtin.apt_repository:
+            repo: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v{{ kubernetes_major_version }}/deb/ /"
+            filename: kubernetes
+            state: present
 
-  - name: Install Kubernetes binaries
-    ansible.builtin.apt:
-      name: "{{ packages }}"
-      state: present
-      update_cache: yes
-    vars:
-      packages:
-        - kubelet={{kubernetes_version}}
-        - kubeadm={{kubernetes_version}}
-        - kubectl={{kubernetes_version}}
+    - name: Install Kubernetes binaries
+      ansible.builtin.apt:
+        name: "{{ packages }}"
+        state: present
+        update_cache: true
+      vars:
+        packages:
+          - kubelet
+          - kubeadm
+          - kubectl
 
-  - name: Configure node ip
-    ansible.builtin.lineinfile:
-      state: present
-      create: true
-      path: /etc/default/kubelet
-      line: KUBELET_EXTRA_ARGS=--node-ip={{ hostvars[inventory_hostname]['ansible_ssh_host'] }}
+    - name: Configure kubelet node ip
+      ansible.builtin.lineinfile:
+        state: present
+        create: true
+        owner: root
+        group: root
+        mode: '0644'
+        path: /etc/default/kubelet
+        line: KUBELET_EXTRA_ARGS=--node-ip={{ hostvars[inventory_hostname]['ansible_ssh_host'] }}
 
-  # - name: Restart kubelet
-  #   ansible.builtin.systemd:
-  #     name: kubelet
-  #     daemon_reload: yes
-  #     state: restarted
-  #     enabled: yes
+
+    # - name: Restart kubelet
+    #   ansible.builtin.systemd:
+    #     name: kubelet
+    #     daemon_reload: yes
+    #     state: restarted
+    #     enabled: yes
+    - name: Reboot
+      ansible.builtin.reboot:

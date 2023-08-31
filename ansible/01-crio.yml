@@ -1,8 +1,14 @@
 ---
-- hosts: all
+# https://cri-o.io/
+# https://github.com/cri-o/cri-o/blob/main/install.md#readme
+# https://kubernetes.io/docs/setup/production-environment/container-runtimes/
+
+- name: Install cri-o
+  hosts: all
   become: true
+  become_user: root
   vars:
-    crio_version: "1.26"
+    crio_version: "1.28"
     crio_os: "xUbuntu_22.04"
   tasks:
     - name: Ensure required dependencies are installed
@@ -13,35 +19,33 @@
         state: present
         update_cache: true
 
-    - name: Ensure directory /usr/share/keyrings exists
-      ansible.builtin.file:
-        path: /usr/share/keyrings
-        state: directory
-        mode: '0755'
+    - name: Add cri-o libcontainers:stable key and repo
+      block:
+        # curl -L https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/$OS/Release.key | apt-key add -
+        - name: Keyring
+          ansible.builtin.apt_key:
+            url: https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/{{ crio_os }}/Release.key
+            state: present
+        # echo "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/$OS/ /" > /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list
+        - name: Repo
+          ansible.builtin.apt_repository:
+            repo: "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/{{ crio_os }}/ /"
+            filename: devel:kubic:libcontainers:stable
+            state: present
 
-    - name: Add crio libcontainers repo key
-      ansible.builtin.shell:
-        cmd: "curl --location --fail --show-error --silent https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/{{crio_os}}/Release.key | gpg --dearmor -o /usr/share/keyrings/libcontainers-archive-keyring.gpg"
-        executable: /usr/bin/bash
-        creates: /usr/share/keyrings/libcontainers-archive-keyring.gpg
-
-    - name: Add crio libcontainers repo
-      ansible.builtin.copy:
-        dest: "/etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list"
-        content: |
-          deb [signed-by=/usr/share/keyrings/libcontainers-archive-keyring.gpg] https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/{{crio_os}}/ /
-
-    - name: Add crio libcontainers-crio repo key
-      ansible.builtin.shell:
-        cmd: "curl --location --fail --show-error --silent https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/{{crio_version}}/{{crio_os}}/Release.key | gpg --dearmor -o /usr/share/keyrings/libcontainers-crio-archive-keyring.gpg"
-        executable: /usr/bin/bash
-        creates: /usr/share/keyrings/libcontainers-crio-archive-keyring.gpg
-
-    - name: Add crio libcontainers-crio repo
-      ansible.builtin.copy:
-        dest: "/etc/apt/sources.list.d/devel:kubic:libcontainers:stable:cri-o:{{crio_version}}.list"
-        content: |
-          deb [signed-by=/usr/share/keyrings/libcontainers-crio-archive-keyring.gpg] https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/{{crio_version}}/{{crio_os}}/ /
+    - name: Add cri-o libcontainers:stable:cri-o key and repo
+      block:
+        # curl -L https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/$VERSION/$OS/Release.key | apt-key add -
+        - name: Keyring
+          ansible.builtin.apt_key:
+            url: https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/{{ crio_version }}/{{ crio_os }}/Release.key
+            state: present
+        # echo "deb http://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/$VERSION/$OS/ /" > /etc/apt/sources.list.d/devel:kubic:libcontainers:stable:cri-o:$VERSION.list
+        - name: Repo
+          ansible.builtin.apt_repository:
+            repo: "deb http://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/{{ crio_version }}/{{ crio_os }}/ /"
+            filename: devel:kubic:libcontainers:stable:cri-o:{{ crio_version }}
+            state: present
 
     # # If you'd like to use the distribution's runc, you'll have to add the file:
     # - name: Add crio configuration for runc
@@ -58,7 +62,7 @@
         name:
           - cri-o
           - cri-o-runc
-        state: latest
+        state: present
         update_cache: true
 
     # # CRI-O uses the systemd cgroup driver per default, which is likely to work fine for you.
@@ -74,6 +78,9 @@
     - name: Set cgroup driver
       ansible.builtin.copy:
         dest: /etc/crio/crio.conf.d/02-cgroup-driver.conf
+        owner: root
+        group: root
+        mode: '0644'
         content: |
           [crio.runtime]
           cgroup_manager = "systemd"
@@ -82,6 +89,9 @@
     - name: Overriding the sandbox (pause) image
       ansible.builtin.copy:
         dest: /etc/crio/crio.conf.d/03-override-pause-image.conf
+        owner: root
+        group: root
+        mode: '0644'
         content: |
           [crio.image]
           pause_image="registry.k8s.io/pause:3.6"
@@ -90,5 +100,5 @@
       ansible.builtin.systemd:
         name: crio.service
         state: restarted
-        enabled: yes
-        daemon_reload: yes
+        enabled: true
+        daemon_reload: true

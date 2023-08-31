@@ -4,5 +4,6 @@
   "ansible.python.interpreterPath": "python",
   "ansible.ansible.path": "ansible",
   "ansible.validation.lint.enabled": true,
-  "ansible.validation.lint.path": "ansible-lint"
+  "ansible.validation.lint.path": "ansible-lint",
+  "ansible.validation.lint.arguments": "--skip-list=yaml[line-length]"
 }

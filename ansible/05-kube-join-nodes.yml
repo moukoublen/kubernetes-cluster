@@ -1,0 +1,20 @@
+---
+- name: Cluster node-0 generate join command
+  hosts: kube-node-0
+  become: true
+  become_user: root
+  tasks:
+
+    - name: Generate join command
+      ansible.builtin.command: kubeadm token create --print-join-command
+      register: join_command
+      changed_when: false
+
+- name: Rest of vms joins to kubernetes cluster
+  hosts: nodes
+  become: true
+  become_user: root
+  tasks:
+    - name: Run a command to join cluster
+      ansible.builtin.command: "{{ hostvars['kube-node-0']['join_command'].stdout_lines | first }}"
+      changed_when: false
