@@ -1,0 +1,8 @@
+{
+  "python.defaultInterpreterPath": "${workspaceFolder}/ansible/venv/bin/python",
+  "ansible.python.activationScript": "${PWD}/ansible/venv/bin/activate",
+  "ansible.python.interpreterPath": "python",
+  "ansible.ansible.path": "ansible",
+  "ansible.validation.lint.enabled": true,
+  "ansible.validation.lint.path": "ansible-lint"
+}

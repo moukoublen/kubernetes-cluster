@@ -4,17 +4,17 @@ collections:
   # https://galaxy.ansible.com/community/general
   # https://docs.ansible.com/ansible/latest/collections/community/general/index.html#plugins-in-community-general
   - name: community.general
-    version: 6.2.0
+    version: 7.3.0
     source: https://galaxy.ansible.com
 
   # https://galaxy.ansible.com/community/docker
   # https://docs.ansible.com/ansible/latest/collections/community/docker/index.html#plugins-in-community-docker
   - name: community.docker
-    version: 3.3.2
+    version: 3.4.8
     source: https://galaxy.ansible.com
 
   # https://galaxy.ansible.com/ansible/posix
   # https://github.com/ansible-collections/ansible.posix/tree/main/docs
   - name: ansible.posix
-    version: 1.4.0
+    version: 1.5.4
     source: https://galaxy.ansible.com

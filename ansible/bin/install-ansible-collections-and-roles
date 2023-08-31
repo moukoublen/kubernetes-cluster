@@ -1,5 +1,2 @@
-ANSIBLE_COLLECTIONS_PATHS=./ansible_lib  \
-ansible-galaxy collection install --requirements-file ext/collections.yml
-
-ANSIBLE_ROLES_PATH=./ansible_lib/roles \
-ansible-galaxy role install --role-file ext/roles.yml
+ANSIBLE_COLLECTIONS_PATHS=./ansible_lib ansible-galaxy collection install --requirements-file ext/collections.yml
+ANSIBLE_ROLES_PATH=./ansible_lib/roles ansible-galaxy role install --role-file ext/roles.yml

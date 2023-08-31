@@ -16,6 +16,19 @@ This script will:
 
 Every ansible playbook must be run from `./ansible` directory (`cd ansible`).
 
+### Install ansible and virtual environment
+ - Create and activate virtual env (optional)
+```bash
+python3 -m venv --clear ./venv
+source ./venv/bin/activate
+pip install -U pip setuptools wheel # Optionally
+```
+- Install ansible and tools
+```bash
+pip install -U ansible-core ansible ansible-lint ansible-navigator
+```
+
+
 * `./bin/install-ansible-collections-and-roles` Installs ansible collections and roles.
 * `./bin/ansible-playbook 00-prequirements.yml` Installs basic configuration requirements for each node.
 * `./bin/ansible-playbook 01-crio.yml` Installs [cri-o](https://cri-o.io/) as [container runtime](https://kubernetes.io/docs/setup/production-environment/container-runtimes/)
