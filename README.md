@@ -34,7 +34,8 @@ pip install -U ansible-core ansible ansible-lint ansible-navigator
 * `./bin/ansible-playbook 01-crio.yml` Installs [cri-o](https://cri-o.io/) as [container runtime](https://kubernetes.io/docs/setup/production-environment/container-runtimes/)
 * `./bin/ansible-playbook 02-kube-install.yml` Installs kubernetes deployment tools ([kubeadm, kubelet, kubectl](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/#installing-kubeadm-kubelet-and-kubectl)).
 * `./bin/ansible-playbook 03-kube-cluster.yml` Setups the kubernetes cluster into the first node kube-node-0.
-* `./bin/ansible-playbook 04-cilium.yml` Setups [cilium](https://cilium.io/) (cni) networking add-on.
+* (cni option 1) `./bin/ansible-playbook 04-cilium.yml` Setups [cilium](https://cilium.io/) (cni) networking add-on.
+* (cni option 2) `./bin/ansible-playbook 04-calico.yml` Setups [calico](https://docs.tigera.io/calico/latest/about/) (cni) networking add-on.
 * `./bin/ansible-playbook 05-kube-join-nodes.yml` Joins the rest vms to kubernetes cluster as nodes.
 
 

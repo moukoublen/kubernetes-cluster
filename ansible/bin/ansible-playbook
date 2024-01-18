@@ -1,7 +1,7 @@
 chmod 0600 ../keys/key
 
 ANSIBLE_HOST_KEY_CHECKING=False \
-ANSIBLE_COLLECTIONS_PATHS=./ansible_lib \
+ANSIBLE_COLLECTIONS_PATH=./ansible_lib \
 ANSIBLE_ROLES_PATH=./ansible_lib/roles ansible-playbook \
   -u ubuntu \
   -i inventory \

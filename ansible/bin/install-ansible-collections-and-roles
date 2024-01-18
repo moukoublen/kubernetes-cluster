@@ -1,2 +1,2 @@
-ANSIBLE_COLLECTIONS_PATHS=./ansible_lib ansible-galaxy collection install --force --force-with-deps --requirements-file ext/collections.yml
-ANSIBLE_ROLES_PATH=./ansible_lib/roles ansible-galaxy role install --force --force-with-deps --role-file ext/roles.yml
+ANSIBLE_COLLECTIONS_PATH=./ansible_lib ansible-galaxy collection install --requirements-file ext/requirements.yml "$@"
+ANSIBLE_ROLES_PATH=./ansible_lib/roles ansible-galaxy role install --role-file ext/requirements.yml "$@"
